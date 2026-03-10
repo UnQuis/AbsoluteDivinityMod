@@ -1,0 +1,8 @@
+name: "abs-divinity"
+displayName: "Absolute Divinity"
+author: "unquis"
+main: "absdivinity.AbsDivinity"
+description: "Mod that adds some random GODLIKE stuff."
+version: 1.0
+minGameVersion: 154
+java: true

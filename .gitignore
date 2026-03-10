@@ -1,0 +1,11 @@
+build/
+
+.DS_Store
+Thumbs.db
+
+.vscode/
+.idea/
+*.iml
+
+*.log
+bin/

@@ -50,15 +50,11 @@ public class UniversalDrillComp extends Drill {
     }
 
     public class UniversalDrillBuild extends DrillBuild {
-        // Собственные данные о рудах — не зависят от родительского countOre
         public Seq<Item> myItems = new Seq<>();
         public ObjectIntMap<Item> myOreCount = new ObjectIntMap<>();
 
-        // Единый прогресс добычи для всех ресурсов
         public float progress = 0f;
         public float powerRequired = 1.5f;
-
-        // --- Сканирование ---
 
         private void rescan() {
             myItems.clear();
@@ -77,14 +73,12 @@ public class UniversalDrillComp extends Drill {
                 }
             }
 
-            // Пересчитываем потребление энергии
             powerRequired = 1.5f;
             for (Item item : myItems) {
                 powerRequired += (item.hardness * 0.2f) * myOreCount.get(item, 0);
             }
         }
 
-        // --- Остановка: только когда все добываемые ресурсы заполнены ---
 
         @Override
         public boolean shouldConsume() {
@@ -92,10 +86,9 @@ public class UniversalDrillComp extends Drill {
             for (Item item : myItems) {
                 if (items.get(item) < itemCapacity) return true;
             }
-            return false; // все заполнены — останавливаемся
+            return false;
         }
 
-        // --- Размещение и загрузка ---
 
         @Override
         public void placed() {
@@ -103,24 +96,18 @@ public class UniversalDrillComp extends Drill {
             rescan();
         }
 
-        // Не вызываем super — предотвращаем сброс состояния при постройке соседей
         @Override
         public void onProximityUpdate() {}
 
-        // --- Основная логика ---
 
         @Override
         public void updateTile() {
-            // Выгружаем ресурсы в соседние конвейеры
             if (timer(timerDump, dumpTime)) dump();
 
-            // Работаем только если есть энергия и есть куда класть
             if (efficiency <= 0 || !shouldConsume()) return;
 
-            // Накапливаем прогресс
             progress += edelta();
 
-            // Каждые drillTime тиков — выдаём партию ресурсов
             if (progress >= drillTime) {
                 progress %= drillTime;
 
@@ -129,7 +116,6 @@ public class UniversalDrillComp extends Drill {
                     if (count <= 0) continue;
                     if (items.get(item) >= itemCapacity) continue;
 
-                    // Количество = пропорционально числу тайлов руды
                     int toAdd = Math.min(count, itemCapacity - items.get(item));
                     items.add(item, toAdd);
                 }

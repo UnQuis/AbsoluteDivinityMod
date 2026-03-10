@@ -13,52 +13,64 @@ import mindustry.graphics.g3d.PlanetParams;
 import mindustry.type.Planet;
 
 public class DysonRingMesh extends PlanetMesh {
-    static Mat3D mat = new Mat3D();
-    static Rand rand = new Rand(1337);  // твой seed для repro
+    static final Mat3D mat  = new Mat3D();
+    static final Rand  rand = new Rand();
 
-    public Vec3 flipAngle = new Vec3();
-    public float flipValue = 0, flipSpeed = 0.4f;
-    public float rotateSpeed = 0.6f;
+    public Vec3  flipAngle   = new Vec3();
+    public float flipValue   = 0f;
+    public float flipSpeed   = 0f;
+    public float rotateSpeed = 0.5f;
 
-    public DysonRingMesh(Planet planet, float radius, float height, int segments, Color c1, Color c2){
-        super(planet, CylinderRingMeshBuilder.build(radius, height, segments, c1, c2), Shaders.clouds);  // clouds для glow!
-        rand.setSeed(1337);
-        flipValue = rand.random(-180f, 180f);
+    /**
+     * @param planet      Планета-владелец
+     * @param radius      Радиус кольца (в единицах радиуса планеты)
+     * @param height      Толщина/высота кольца
+     * @param seed        Seed для угла наклона и скорости вращения
+     * @param color       Основной цвет
+     * @param color2      Акцентный цвет (каждый 4-й сегмент)
+     */
+    public DysonRingMesh(Planet planet, float radius, float height,
+                         int seed, Color color, Color color2) {
+        super(planet,
+              CylinderRingMeshBuilder.build(radius, height, 120, color, color2),
+              Shaders.clouds);
+
+        rand.setSeed(seed);
+        flipValue   = rand.random(-180f, 180f);
         flipAngle.setToRandomDirection(rand);
-        flipSpeed = rand.random(0.3f, 0.7f);
-        rotateSpeed = rand.random(0.4f, 0.8f);
+        flipSpeed   = rand.random(0.3f, 0.7f);
+        rotateSpeed = rand.random(1f,   3f);
     }
 
-    public float flipRot() { return Time.globalTime * flipSpeed / 40f + flipValue; }
-    public float relRot() { return Time.globalTime * rotateSpeed / 40f; }
+    public DysonRingMesh() {}
+
+    public float flipRot()  { return Time.globalTime * flipSpeed  / 40f + flipValue; }
+    public float relRot()   { return Time.globalTime * rotateSpeed / 40f; }
 
     @Override
-    public void render(PlanetParams params, Mat3D projection, Mat3D transform){
-        if(planet == null) return;
-        if(params.planet == planet && Mathf.zero(1f - params.uiAlpha, 0.01f)) return;
+    public void render(PlanetParams params, Mat3D projection, Mat3D transform) {
+        if (params.planet == planet && Mathf.zero(1f - params.uiAlpha, 0.01f)) return;
 
         preRender(params);
         shader.bind();
-        shader.setUniformMatrix4("u_proj", projection.val);
+        shader.setUniformMatrix4("u_proj",  projection.val);
         shader.setUniformMatrix4("u_trans", mat
-            .setToTranslation(planet.position)
-            .rotate(flipAngle, flipRot())
-            .rotate(Vec3.Y, planet.getRotation() + relRot()).val);
+                .setToTranslation(planet.position)
+                .rotate(flipAngle, flipRot())
+                .rotate(Vec3.Y, planet.getRotation() + relRot()).val);
         shader.apply();
-
-        Gl.disable(Gl.cullFace);
         mesh.render(shader, Gl.triangles);
-        Gl.enable(Gl.cullFace);
-}
+    }
 
     @Override
-    public void preRender(PlanetParams params){
-        if(planet == null) return;
+    public void preRender(PlanetParams params) {
         Shaders.clouds.planet = planet;
-        Shaders.clouds.lightDir.set(planet.solarSystem.position).sub(planet.position)
-            .rotate(flipAngle, flipRot())
-            .rotate(Vec3.Y, planet.getRotation() + relRot())
-            .nor();
+        Shaders.clouds.lightDir
+                .set(planet.solarSystem.position)
+                .sub(planet.position)
+                .rotate(flipAngle, flipRot())
+                .rotate(Vec3.Y, planet.getRotation() + relRot())
+                .nor();
         Shaders.clouds.ambientColor.set(planet.solarSystem.lightColor);
         Shaders.clouds.alpha = params.planet == planet ? 1f - params.uiAlpha : 1f;
     }

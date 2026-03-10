@@ -29,7 +29,7 @@ public class EnergyCreepLaserBulletType extends ContinuousLaserBulletType {
 
     public EnergyCreepLaserBulletType() {
         super();
-        damage    = 80f;   // было 150f — мощный но не мгновенный убийца
+        damage    = 80f;
         length    = 320f;
         width     = 12f;
         hitColor  = Color.valueOf("00aeff");
@@ -39,10 +39,9 @@ public class EnergyCreepLaserBulletType extends ContinuousLaserBulletType {
 
     public static class CreepData {
         public float lastX, lastY;
-        // Трейл: кольцевой буфер позиций пятен ожога
         public float[] burnX = new float[24];
         public float[] burnY = new float[24];
-        public float[] burnA = new float[24]; // alpha пятна
+        public float[] burnA = new float[24];
         public int burnIdx   = 0;
     }
 
@@ -65,7 +64,6 @@ public class EnergyCreepLaserBulletType extends ContinuousLaserBulletType {
         float curLen = calculateLength(b);
         Vec2 head    = Tmp.v1.trns(b.rotation(), curLen).add(b.x, b.y);
 
-        // Записываем пятно ожога на текущей позиции наконечника
         if (Mathf.chanceDelta(0.4f)) {
             int idx = data.burnIdx % data.burnX.length;
             data.burnX[idx] = head.x + Mathf.range(width * 0.5f);
@@ -74,12 +72,10 @@ public class EnergyCreepLaserBulletType extends ContinuousLaserBulletType {
             data.burnIdx++;
         }
 
-        // Затухание пятен ожога
         for (int i = 0; i < data.burnA.length; i++) {
             data.burnA[i] = Mathf.approachDelta(data.burnA[i], 0f, 1f / 90f);
         }
 
-        // Эффект пара/дыма у наконечника
         float groundScl = 1f - Mathf.clamp((b.time - creepTime / 1.4f) / (creepTime / 4f));
         if (Mathf.chanceDelta(0.5f) && groundScl > 0) {
             Fx.ventSteam.at(
@@ -106,24 +102,19 @@ public class EnergyCreepLaserBulletType extends ContinuousLaserBulletType {
         float fade   = Mathf.clamp(b.time / 10f) * b.fout();
         float rot    = b.rotation();
 
-        // === Выжженный след на земле ===
         Draw.z(Layer.groundUnit - 1f);
 
-        // Пятна ожогов
         for (int i = 0; i < data.burnA.length; i++) {
             float a = data.burnA[i] * 0.6f;
             if (a < 0.01f) continue;
 
-            // Внешний ореол пятна
             Draw.color(Color.valueOf("bf92f9").cpy().a(a * 0.35f));
             Fill.circle(data.burnX[i], data.burnY[i], width * 1.2f);
 
-            // Ядро пятна
             Draw.color(Color.valueOf("00aeff").cpy().a(a * 0.7f));
             Fill.circle(data.burnX[i], data.burnY[i], width * 0.5f);
         }
 
-        // Непрерывная полоса следа под лучом
         float trailA = fade * 0.4f;
         Draw.color(Color.valueOf("bf92f9").cpy().a(trailA * 0.5f));
         Lines.stroke(width * 2.5f);
@@ -133,7 +124,6 @@ public class EnergyCreepLaserBulletType extends ContinuousLaserBulletType {
         Lines.stroke(width * 0.8f);
         Lines.lineAngle(b.x, b.y, rot, curLen * 0.86f);
 
-        // === Сам лазер ===
         Draw.z(Layer.bullet);
         for (int i = 0; i < colors.length; i++) {
             float f = ((float)(colors.length - i) / colors.length);
@@ -149,7 +139,6 @@ public class EnergyCreepLaserBulletType extends ContinuousLaserBulletType {
             Fill.poly(b.x + tip.x, b.y + tip.y, 3, w * 1.2f, rot);
         }
 
-        // Летящие частицы вдоль луча
         Draw.z(Layer.effect);
         Rand rand = new Rand(b.id);
         for (int i = 0; i < 18; i++) {
@@ -163,7 +152,6 @@ public class EnergyCreepLaserBulletType extends ContinuousLaserBulletType {
             Drawf.tri(v.x, v.y, width / 4f, l, rot);
         }
 
-        // Свечение
         Drawf.light(b.x, b.y, data.lastX, data.lastY, width * 4f, colors[1], 0.65f * fade);
         Draw.reset();
     }

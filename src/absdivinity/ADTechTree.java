@@ -11,11 +11,9 @@ import arc.struct.Seq;
 public class ADTechTree {
     public static void load(){
 
-        // Находим узел coreNucleus в дереве Serpulo
         TechNode parent = TechTree.all.find(n -> n.content == Blocks.coreNucleus);
-        if(parent == null) return; // защита на случай если не найден
+        if(parent == null) return;
 
-        // Создаём корень ветки мода вручную
         TechNode energyCoreNode = new TechNode(parent, AbsDivinity.energyCore, ItemStack.with(
             Items.thorium, 200,
             Items.surgeAlloy, 150
@@ -23,7 +21,6 @@ public class ADTechTree {
         energyCoreNode.objectives = Seq.with(new Research(Blocks.coreNucleus));
         parent.children.add(energyCoreNode);
 
-        // --- Ветка добычи ---
         TechNode rayDrillNode = new TechNode(energyCoreNode, AbsDivinity.rayDrill, ItemStack.with(
             Items.titanium, 150,
             Items.thorium, 80
@@ -38,7 +35,6 @@ public class ADTechTree {
         rangeDrillNode.objectives = Seq.with(new Research(AbsDivinity.rayDrill));
         rayDrillNode.children.add(rangeDrillNode);
 
-        // --- Ветка турелей ---
         TechNode omniTurretNode = new TechNode(energyCoreNode, AbsDivinity.omniTurret, ItemStack.with(
             Items.surgeAlloy, 100,
             Items.silicon, 150
@@ -53,7 +49,6 @@ public class ADTechTree {
         baHionNode.objectives = Seq.with(new Research(AbsDivinity.omniTurret));
         omniTurretNode.children.add(baHionNode);
 
-        // --- Ветка спецблоков ---
         TechNode outpostNode = new TechNode(energyCoreNode, AbsDivinity.outpostNode, ItemStack.with(
             Items.surgeAlloy, 180,
             Items.silicon, 400
@@ -68,7 +63,6 @@ public class ADTechTree {
         endgameOdNode.objectives = Seq.with(new Research(AbsDivinity.outpostNode));
         outpostNode.children.add(endgameOdNode);
 
-        // Регистрируем все узлы в глобальном списке
         TechTree.all.addAll(
             energyCoreNode, rayDrillNode, rangeDrillNode,
             omniTurretNode, baHionNode,

@@ -10,7 +10,11 @@ import absdivinity.items.ADLiquids;
 import absdivinity.maps.planets.VerdictPlanet;
 import absdivinity.maps.planets.generators.VerdictPlanetGenerator;
 import mindustry.mod.*;
+import absdivinity.content.ADUnits;
 import arc.util.*;
+import arc.Events;
+import mindustry.game.EventType.*;
+import absdivinity.maps.planets.VerdictSectorPreset;
 import mindustry.world.*;
 import mindustry.type.*;
 import mindustry.content.*;
@@ -45,6 +49,21 @@ public class AbsDivinity extends Mod {
         outpostNode = new OutpostNode("outpost-node");
         generator = new VerdictPlanetGenerator();
 
+        ADUnits.load();
         ADTechTree.load();
     }
+
+    @Override
+    public void init() {
+        Events.on(WorldLoadEvent.class, e -> {
+            if (mindustry.Vars.state.rules.sector != null
+                    && mindustry.Vars.state.rules.sector.planet == VerdictPlanet.verdict) {
+                VerdictSectorPreset.apply(
+                    mindustry.Vars.state.rules.sector,
+                    mindustry.Vars.state.rules
+                );
+            }
+        });
+    }
+
 }

@@ -1,53 +1,56 @@
 # **Absolute Divinity**
 
-## **Описание**
+## **Description**
 
-(Твое описание мода здесь)
+They wanted it themselves. They created what they could not contain. Greed consumed them...
 
-## **Основные особенности**
+## **Key Features**
 
-* **Новые ресурсы:** (Заполни список, например: Целестит, Нейтролит и др.)  
-* **Уникальные блоки:** (Например: Универсальные буры, продвинутые турели)  
-* **Технологии:** (Опиши дерево технологий или новые механики)
+- **New Resources**
+    
+- **Unique Blocks**
+    
+- **Technologies**
+    
+- **New Units**
+    
 
-## **Установка**
+## **Installation**
 
-### **Для игроков**
+### **For Players**
 
-1. Скачайте последний .jar файл из раздела \[Releases\] (если есть) или соберите его самостоятельно.  
-2. Переместите файл в папку модов Mindustry:  
-   * **Windows:** %AppData%\\Mindustry\\mods  
-   * **Linux:** \~/.local/share/Mindustry/mods  
-3. Перезапустите игру.
+1. Download the latest .jar file from the [Releases] section (if available) or build it yourself.
+    
+2. Move the file to the Mindustry mods folder:
+    
+    - **Windows:** `%AppData%\Mindustry\mods`
+        
+    - **Linux:** `~/.local/share/Mindustry/mods`
+        
+3. Restart the game.
+    
 
-### **Для разработчиков (Сборка из исходников)**
+### **For Developers (Building from Source)**
 
-Для сборки требуется **JDK 17**.
+**JDK 17** is required for building.
 
-1. Склонируйте репозиторий:  
-   git clone \[https://github.com/alexquasar/AbsoluteDivinityMod-main.git\](https://github.com/alexquasar/AbsoluteDivinityMod-main.git)
+1. Clone the repository:
+    ```
+    git clone [https://github.com/UnQuis/AbsoluteDivinityMod.git](https://github.com/UnQuis/AbsoluteDivinityMod.git)
+    ```
+2. Navigate to the project folder:
+    ```
+    cd AbsoluteDivinityMod-main
+    ```
+3. Build the mod using Gradle:
+    ```
+    ./gradlew clean jar
+    ```
+4. The finished file will appear in `build/libs/AbsoluteDivinity.jar`.
+    
 
-2. Перейдите в папку проекта:  
-   cd AbsoluteDivinityMod-main
+## **Requirements**
 
-3. Соберите мод с помощью Gradle:  
-   ./gradlew clean jar
-
-4. Готовый файл появится в build/libs/AbsoluteDivinity.jar.
-
-## **Структура проекта**
-
-* src/absdivinity/items — определения предметов и жидкостей.  
-* src/absdivinity/blocks — код кастомных зданий и механизмов.  
-* src/absdivinity/graphics — кастомные шейдеры и отрисовка мешей для планет.  
-* src/absdivinity/utils — вспомогательные математические методы.
-
-## **Требования**
-
-* **Mindustry:** v146+ (Arc 7.0+)  
-* **Java:** JDK 17 (для компиляции), JRE 8 (совместимость в игре)
-
-## **Лицензия**
-
-(Укажи лицензию, например, MIT или GNU GPL v3)  
-*Разработано alexquasar*
+- **Mindustry:** v146+ (Arc 7.0+)
+    
+- **Java:** JDK 17 (for compilation), JRE 8 (in-game compatibility)

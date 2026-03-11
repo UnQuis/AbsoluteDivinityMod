@@ -4,12 +4,13 @@ import arc.graphics.Color;
 import mindustry.content.*;
 import mindustry.entities.bullet.*;
 import mindustry.gen.*;
+import mindustry.gen.EntityMapping;
+import absdivinity.entities.VerdictSentinelEntity;
+import absdivinity.entities.VerdictAscendantEntity;
 import mindustry.type.*;
 import mindustry.type.unit.*;
-import absdivinity.entities.*;
 
 public class ADUnits {
-
 
     public static UnitType
         scrapCrawler, scrapHound,
@@ -42,8 +43,8 @@ public class ADUnits {
         verdictAscendant;
 
     public static void load() {
-        VerdictSentinelEntity.typeId = mindustry.gen.EntityMapping.register("absdivinity-verdict-sentinel", VerdictSentinelEntity::new);
-        VerdictAscendantEntity.typeId = mindustry.gen.EntityMapping.register("absdivinity-verdict-ascendant", VerdictAscendantEntity::new);
+        VerdictSentinelEntity._classId  = EntityMapping.register("absdivinity-sentinel",  VerdictSentinelEntity::new);
+        VerdictAscendantEntity._classId = EntityMapping.register("absdivinity-ascendant", VerdictAscendantEntity::new);
 
         scrapCrawler = new UnitType("scrap-crawler") {{
             health = 80; speed = 1.8f; hitSize = 8f;
@@ -527,7 +528,7 @@ public class ADUnits {
             }});
         }};
 
-                verdictAscendant = new UnitType("verdict-ascendant") {{
+        verdictAscendant = new UnitType("verdict-ascendant") {{
             health = 120000; speed = 1.8f; hitSize = 50f; armor = 25f;
             flying = true; engineSize = 8f; engineOffset = 18f;
             constructor = VerdictAscendantEntity::new;
@@ -573,5 +574,65 @@ public class ADUnits {
                 reload = 45f; x = 10f; y = -3f; mirror = true;
             }});
         }};
+    }
+    // ── Unit plan registration ─────────────────────────────────────────
+    // Called from AbsDivinity.loadContent() AFTER ADUnits.load().
+
+    public static void registerAssemblerPlans(mindustry.world.blocks.units.UnitFactory factory) {
+        // T1
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(scrapCrawler,  60f * 20,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.scrapAlloy, 20, absdivinity.items.ADItems.ruinDust, 10)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(scrapHound,    60f * 25,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.scrapAlloy, 30, absdivinity.items.ADItems.ashCarbon, 15)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(voidSpore,     60f * 22,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.abyssGlass, 15, absdivinity.items.ADItems.ruinDust, 20)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(celestShard,   60f * 22,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.celestite,  20, absdivinity.items.ADItems.frostShard, 10)));
+        // T2
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(ironStalker,   60f * 45,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.voidIron, 30, absdivinity.items.ADItems.celestite, 20)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(ironBrute,     60f * 55,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.voidSteel, 35, absdivinity.items.ADItems.refinedScrap, 25)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(abyssGrub,     60f * 48,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.abyssGlass, 25, absdivinity.items.ADItems.voidIron, 20)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(neutroScout,   60f * 50,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.neutrolite, 20, absdivinity.items.ADItems.celestAlloy, 25)));
+        // T3
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(voidReaper,    60f * 80,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.voidCrystal, 20, absdivinity.items.ADItems.glassSteel, 30)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(ruinGuard,     60f * 90,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.ancientCore, 15, absdivinity.items.ADItems.voidSteel, 35)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(glacierHulk,   60f * 85,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.frostedAlloy, 30, absdivinity.items.ADItems.voidSteel, 25)));
+        // T4
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(corruptedTitan,  60f * 150,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.divinite, 20, absdivinity.items.ADItems.etherSteel, 40, absdivinity.items.ADItems.voidMatrix, 10)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(diviniteShield,  60f * 160,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.divinite, 25, absdivinity.items.ADItems.crystalMatrix, 15, absdivinity.items.ADItems.resonantAlloy, 20)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(corruptedBehemoth, 60f * 180,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.voidMatrix, 20, absdivinity.items.ADItems.etherSteel, 50, absdivinity.items.ADItems.ancientCore, 15)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(diviniteRampage,  60f * 170,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.divinite, 30, absdivinity.items.ADItems.crystalMatrix, 20, absdivinity.items.ADItems.carbonFilament, 25)));
+    }
+
+    public static void registerForgePlans(mindustry.world.blocks.units.UnitFactory factory) {
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(voidWraith,    60f * 200,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.voidMatrix, 25, absdivinity.items.ADItems.divineFrame, 20, absdivinity.items.ADItems.soulCrystal, 10)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(voidPhantom,   60f * 220,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.voidMatrix, 30, absdivinity.items.ADItems.abyssalShard, 15, absdivinity.items.ADItems.soulCrystal, 15)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(energyHawk,    60f * 210,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.crystalMatrix, 30, absdivinity.items.ADItems.resonantAlloy, 25, absdivinity.items.ADItems.neutrolite, 40)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(energyFalcon,  60f * 230,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.crystalMatrix, 35, absdivinity.items.ADItems.resonantAlloy, 30, absdivinity.items.ADItems.ancientCircuit, 15)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(abyssSeraph,   60f * 360,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.abyssalShard, 20, absdivinity.items.ADItems.divineFrame, 35, absdivinity.items.ADItems.soulCrystal, 25)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(abyssArchangel, 60f * 420,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.abyssalShard, 30, absdivinity.items.ADItems.verdictHeart, 10, absdivinity.items.ADItems.nullMatter, 15)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(verdictSentinel,  60f * 900,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.verdictHeart, 25, absdivinity.items.ADItems.transcendCore, 10,
+                                          absdivinity.items.ADItems.nullMatter, 20, absdivinity.items.ADItems.divineFrame, 50)));
+        factory.plans.add(new mindustry.world.blocks.units.UnitFactory.UnitPlan(verdictAscendant, 60f * 1200,
+            mindustry.type.ItemStack.with(absdivinity.items.ADItems.transcendCore, 15, absdivinity.items.ADItems.verdictHeart, 30,
+                                          absdivinity.items.ADItems.nullMatter, 25, absdivinity.items.ADItems.abyssalShard, 40)));
     }
 }

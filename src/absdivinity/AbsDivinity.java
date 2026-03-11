@@ -15,6 +15,8 @@ import arc.util.*;
 import arc.Events;
 import mindustry.game.EventType.*;
 import absdivinity.maps.planets.VerdictSectorPreset;
+import absdivinity.blocks.units.RuinAssembler;
+import absdivinity.blocks.units.AbyssalForge;
 import mindustry.world.*;
 import mindustry.type.*;
 import mindustry.content.*;
@@ -33,12 +35,16 @@ public class AbsDivinity extends Mod {
     public AbsDivinity() {
         Log.info("Загрузка мода Absolute Divinity..."); 
     }
+    public static RuinAssembler  ruinAssembler;
+    public static AbyssalForge   abyssalForge;
     @Override
     public void loadContent() {
         ADItems.load();
         ADLiquids.load();
         ADBlocks.load();
         VerdictPlanet.load();
+        ruinAssembler = new RuinAssembler("ruin-assembler");
+        abyssalForge = new AbyssalForge("abyssal-forge");
         energyCoreDrone = new EnergyCoreDrone("energy-core-drone");
         omniTurret = new OmniTurret ("omni-turret");
         rayDrill = new RayDrill("ray-drill");

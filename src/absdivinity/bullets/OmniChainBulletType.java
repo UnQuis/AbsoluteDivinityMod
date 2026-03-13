@@ -20,84 +20,55 @@ import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Trail;
 
-/**
- * OmniChainBulletType — спиральная пуля с цепным ударом.
- *
- * Характеристики масштабируются от charge материала:
- *  - количество и размер спиралей
- *  - длина и количество цепных прыжков
- *  - дальность подбора следующей цели
- *
- * Дальность полёта задаётся снаружи (из OmniTurret) и не превышает maxDrawSize.
- */
 public class OmniChainBulletType extends BulletType {
 
-    // ── Визуал пули ────────────────────────────────────────────────
     public Color   bulletColor;
     public Color   glowColor;
-    public Color   coreColor;         // яркое ядро (белёный bulletColor)
+    public Color   coreColor;
 
-    /** Максимальный drawSize — кап чтобы огромные цепи не тормозили рендер. */
+    
     public float   maxDrawSize    = 320f;
 
-    // ── Спираль ────────────────────────────────────────────────────
     public int     helixCount     = 3;
     public int     helixLength    = 32;
     public float   helixWidth     = 2.4f;
     public float   helixRadius    = 7f;
     public float   helixSpeed     = 8f;
 
-    // ── Ускорение ──────────────────────────────────────────────────
     public float   accelFrom      = 0.1f;
     public float   accelTo        = 0.65f;
     public float   speedBegin     = 2f;
 
-    // ── Цепной удар ────────────────────────────────────────────────
     public int     maxChain       = 4;
     public float   chainRange     = 100f;
     public float   chainDamage    = 0f;
-    public float   chainDecay     = 0.80f;   // множитель урона каждого прыжка
+    public float   chainDecay     = 0.80f;
 
-    // ── Вспышка при выстреле ───────────────────────────────────────
-    /** Продолжительность вспышки-шлейфа при спавне. */
+    
     public float   muzzleFlashDuration = 18f;
 
-    // ── Статика ────────────────────────────────────────────────────
     protected static final Seq<Healthc> hitUnits = new Seq<>();
 
-    // ══════════════════════════════════════════════════════════════
-    // Конструктор
-    // ══════════════════════════════════════════════════════════════
-
-    /**
-     * @param damage       базовый урон
-     * @param charge       charge материала (0..∞, обычно 0..3)
-     * @param color        базовый цвет пули
-     * @param bulletRange  дальность полёта (уже посчитана в OmniTurret)
-     * @param maxDrawSz    кап drawSize
-     */
+    
     public OmniChainBulletType(float damage, float charge, Color color,
                                float bulletRange, float maxDrawSz) {
         this.damage      = damage;
         this.bulletColor = color.cpy();
         this.maxDrawSize = maxDrawSz;
 
-        // Цепь — масштаб от charge
-        float ch          = Mathf.clamp(charge, 0f, 3f) / 3f; // 0..1
-        this.maxChain     = (int)(2  + ch * 14);               // 2..16
-        this.chainRange   = 80f + ch * 160f;                   // 80..240
-        this.chainDamage  = damage * (0.65f + ch * 0.35f);     // 65%..100%
+        float ch          = Mathf.clamp(charge, 0f, 3f) / 3f;
+        this.maxChain     = (int)(2  + ch * 14);
+        this.chainRange   = 80f + ch * 160f;
+        this.chainDamage  = damage * (0.65f + ch * 0.35f);
 
-        // Спираль — масштаб от charge
         this.helixCount   = ch < 0.25f ? 2 : (ch < 0.6f ? 3 : 4);
-        this.helixRadius  = 5f  + ch * 10f;                    // 5..15
-        this.helixWidth   = 1.6f + ch * 2f;                    // 1.6..3.6
-        this.helixLength  = (int)(24 + ch * 20);               // 24..44
+        this.helixRadius  = 5f  + ch * 10f;
+        this.helixWidth   = 1.6f + ch * 2f;
+        this.helixLength  = (int)(24 + ch * 20);
 
-        // Скорость / время жизни — дальность задана извне
         this.speed        = 11f;
         this.speedBegin   = 2.5f;
-        this.lifetime     = bulletRange / this.speed * 1.1f;   // чтобы долетела
+        this.lifetime     = bulletRange / this.speed * 1.1f;
 
         this.shootEffect   = Fx.none;
         this.hitEffect     = Fx.none;
@@ -107,13 +78,8 @@ public class OmniChainBulletType extends BulletType {
         this.collidesGround = true;
         this.collidesAir    = true;
 
-        // drawSize: chainRange + гало — но не больше капа
         this.drawSize = Math.min(chainRange + helixRadius * 4f, maxDrawSize);
     }
-
-    // ══════════════════════════════════════════════════════════════
-    // Init
-    // ══════════════════════════════════════════════════════════════
 
     @Override
     public void init() {
@@ -125,20 +91,15 @@ public class OmniChainBulletType extends BulletType {
     @Override
     public void init(Bullet b) {
         super.init(b);
-        // data[0] = Trail[] спиралей, хранится как Object[]
-        // data — просто Trail[]
+
         Trail[] trails = new Trail[helixCount];
         for (int i = 0; i < helixCount; i++) trails[i] = new Trail(helixLength);
         b.data = trails;
     }
 
-    // ══════════════════════════════════════════════════════════════
-    // Update
-    // ══════════════════════════════════════════════════════════════
-
     @Override
     public void update(Bullet b) {
-        // Ускорение по Interp
+
         float t   = Mathf.curve(b.fin(), accelFrom, accelTo);
         float spd = speedBegin + Interp.pow2Out.apply(t) * (speed - speedBegin);
         b.vel.setLength(spd);
@@ -151,7 +112,7 @@ public class OmniChainBulletType extends BulletType {
         float phase = b.time * helixSpeed;
         for (int i = 0; i < helixCount; i++) {
             float ang = phase + i * (360f / helixCount);
-            // Спираль расширяется при разгоне — радиус пульсирует
+
             float r = helixRadius * (0.6f + 0.4f * Mathf.curve(b.fin(), 0f, 0.35f))
                     * (1f + Mathf.absin(b.time, 3.5f, 0.12f));
             float ox = Mathf.cosDeg(ang) * r;
@@ -162,10 +123,6 @@ public class OmniChainBulletType extends BulletType {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    // Removed — трейл-fade при исчезновении
-    // ══════════════════════════════════════════════════════════════
-
     @Override
     public void removed(Bullet b) {
         super.removed(b);
@@ -175,13 +132,9 @@ public class OmniChainBulletType extends BulletType {
             if (t != null && t.size() > 0)
                 Fx.trailFade.at(b.x, b.y, helixWidth, bulletColor, t.copy());
         }
-        // Маленькая вспышка при исчезновении
+
         spawnDespawnBurst(b.x, b.y);
     }
-
-    // ══════════════════════════════════════════════════════════════
-    // Draw
-    // ══════════════════════════════════════════════════════════════
 
     @Override
     public void draw(Bullet b) {
@@ -191,21 +144,19 @@ public class OmniChainBulletType extends BulletType {
         float fade  = b.fout();
         float fin   = b.fin();
         float pulse = 1f + Mathf.absin(Time.time, 3.5f, 0.22f);
-        float accel = Mathf.curve(fin, accelFrom, accelTo); // 0..1 разгон
+        float accel = Mathf.curve(fin, accelFrom, accelTo);
 
         float z = Draw.z();
 
-        // ── 1. Трейлы спирали (под пулей) ─────────────────────────
         Draw.z(Layer.bullet - 0.002f);
         for (int i = 0; i < trails.length; i++) {
             Trail t = trails[i];
             if (t == null) continue;
-            // Каждая нить чуть светлее или темнее
+
             Color tc = (i % 2 == 0) ? bulletColor : glowColor;
             t.draw(tc, helixWidth * fade * (0.8f + 0.2f * i));
         }
 
-        // ── 2. Внешнее мягкое гало ────────────────────────────────
         Draw.z(Layer.bullet - 0.001f);
         float haloR = helixRadius * 2.8f * pulse;
         Draw.color(bulletColor.r, bulletColor.g, bulletColor.b, 0.08f * fade);
@@ -213,18 +164,15 @@ public class OmniChainBulletType extends BulletType {
         Draw.color(bulletColor.r, bulletColor.g, bulletColor.b, 0.18f * fade);
         Fill.circle(b.x, b.y, haloR);
 
-        // ── 3. Средний слой — основная сфера ──────────────────────
         Draw.z(Layer.bullet);
         Draw.color(bulletColor, 0.6f * fade);
         Fill.circle(b.x, b.y, helixRadius * 0.95f * pulse);
 
-        // ── 4. Яркое ядро ─────────────────────────────────────────
         Draw.color(glowColor, 0.85f * fade);
         Fill.circle(b.x, b.y, helixRadius * 0.55f * pulse);
         Draw.color(coreColor, fade);
         Fill.circle(b.x, b.y, helixRadius * 0.28f * pulse);
 
-        // ── 5. Вращающиеся иглы (2 пары, разные скорости) ─────────
         float triSize = helixRadius * 0.9f * fade * pulse;
         float ang1    = b.time * helixSpeed * 0.55f;
         float ang2    = -b.time * helixSpeed * 0.42f + 45f;
@@ -238,14 +186,12 @@ public class OmniChainBulletType extends BulletType {
         Drawf.tri(b.x, b.y, triSize * 0.28f, triSize * 1.5f, ang2);
         Drawf.tri(b.x, b.y, triSize * 0.28f, triSize * 1.5f, ang2 + 180f);
 
-        // Третья пара — появляется при charge > 0 (helixCount >= 3)
         if (helixCount >= 3) {
             Draw.color(coreColor, 0.45f * fade);
             Drawf.tri(b.x, b.y, triSize * 0.2f, triSize * 1.1f, ang3);
             Drawf.tri(b.x, b.y, triSize * 0.2f, triSize * 1.1f, ang3 + 180f);
         }
 
-        // ── 6. Кольцо разгона (появляется при ускорении) ──────────
         if (accel < 0.9f) {
             float ringAlpha = (1f - accel) * fade * 0.7f;
             float ringR     = helixRadius * (1.5f + accel * 3f);
@@ -254,7 +200,6 @@ public class OmniChainBulletType extends BulletType {
             Lines.circle(b.x, b.y, ringR);
         }
 
-        // ── 7. Осколки при разгоне (первые 25% жизни) ─────────────
         if (fin < 0.3f) {
             float sparkAlpha = (0.3f - fin) / 0.3f * 0.6f;
             Draw.color(glowColor, sparkAlpha);
@@ -269,22 +214,16 @@ public class OmniChainBulletType extends BulletType {
             }
         }
 
-        // ── 8. Динамический свет ──────────────────────────────────
         Drawf.light(b.x, b.y, helixRadius * 5.5f * pulse, bulletColor, 0.75f * fade);
 
         Draw.reset();
         Draw.z(z);
     }
 
-    // ══════════════════════════════════════════════════════════════
-    // Hit — цепной удар
-    // ══════════════════════════════════════════════════════════════
-
     @Override
     public void hit(Bullet b, float x, float y) {
         super.hit(b, x, y);
 
-        // Вспышка в точке попадания
         spawnHitBurst(x, y);
 
         hitUnits.clear();
@@ -308,11 +247,7 @@ public class OmniChainBulletType extends BulletType {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    // Эффекты
-    // ══════════════════════════════════════════════════════════════
-
-    /** Вспышка при попадании первой пули. */
+    
     void spawnHitBurst(float x, float y) {
         final Color c  = bulletColor;
         final Color gc = glowColor;
@@ -323,12 +258,10 @@ public class OmniChainBulletType extends BulletType {
         new Effect(38f, e -> {
             float p = e.fin();
 
-            // Взрывное кольцо
             Draw.color(c, e.fout() * 0.9f);
             Lines.stroke(hw * 1.5f * e.fout());
             Lines.circle(e.x, e.y, hr * (1.5f + p * 5f));
 
-            // Второе кольцо (чуть позже)
             if (p > 0.15f) {
                 float p2 = (p - 0.15f) / 0.85f;
                 Draw.color(gc, (1f - p2) * 0.6f);
@@ -336,14 +269,12 @@ public class OmniChainBulletType extends BulletType {
                 Lines.circle(e.x, e.y, hr * (1f + p2 * 3.5f));
             }
 
-            // Яркий центр
             Draw.color(cc, e.fout() * (1f - p * 0.6f));
             Fill.circle(e.x, e.y, hr * 1.4f * e.fout());
 
             Draw.color(c, e.fout() * 0.5f);
             Fill.circle(e.x, e.y, hr * 2.5f * e.fout());
 
-            // Иглы разлёта
             int spikes = 6 + (int)(maxChain / 3);
             for (int i = 0; i < spikes; i++) {
                 float ang = e.rotation + i * (360f / spikes) + p * 45f;
@@ -354,7 +285,6 @@ public class OmniChainBulletType extends BulletType {
                 Drawf.tri(sx, sy, hw * 0.6f, hw * 3f, ang);
             }
 
-            // Частицы
             Angles.randLenVectors(e.id, 10, hr * (1f + p * 3f),
                 (ox, oy) -> {
                     Draw.color(gc, e.fout() * 0.8f);
@@ -365,7 +295,7 @@ public class OmniChainBulletType extends BulletType {
         }).at(x, y, Mathf.random(360f));
     }
 
-    /** Вспышка при исчезновении (промах). */
+    
     void spawnDespawnBurst(float x, float y) {
         final Color c  = bulletColor;
         final float hw = helixWidth;
@@ -385,10 +315,7 @@ public class OmniChainBulletType extends BulletType {
         }).at(x, y);
     }
 
-    /**
-     * Дуга цепного удара от (x1,y1) к (x2,y2).
-     * hopIndex влияет на толщину, изгиб и количество паразитных искр.
-     */
+    
     void spawnChainArc(float x1, float y1, float x2, float y2, float dmg, int hopIndex) {
         final Color c  = bulletColor;
         final Color gc = glowColor;
@@ -396,8 +323,6 @@ public class OmniChainBulletType extends BulletType {
         final float hw = helixWidth;
         final float hr = helixRadius;
 
-        // Два промежуточных контрольных точки для кубической кривой Безье —
-        // каждый прыжок гнётся сильнее предыдущего
         float jit  = 22f + hopIndex * 12f;
         float midX1 = (x1 * 2 + x2) / 3f + Mathf.range(jit);
         float midY1 = (y1 * 2 + y2) / 3f + Mathf.range(jit);
@@ -410,14 +335,12 @@ public class OmniChainBulletType extends BulletType {
             float p   = e.fin();
             float fot = e.fout();
 
-            // ── Главная дуга ───────────────────────────────────────
-            // Нарисуем три параллельных нити для объёма
             int segs = 16;
             for (int layer = 0; layer < 3; layer++) {
                 float layerThick = thick * (1f - layer * 0.28f) * fot;
                 Color layerCol   = layer == 0 ? c : (layer == 1 ? gc : cc);
                 float layerAlpha = (layer == 0 ? 0.9f : layer == 1 ? 0.6f : 0.35f) * fot;
-                float offset     = (layer - 1) * (thick * 0.5f); // смещение нити
+                float offset     = (layer - 1) * (thick * 0.5f);
 
                 Draw.color(layerCol, layerAlpha);
                 Lines.stroke(layerThick);
@@ -426,10 +349,10 @@ public class OmniChainBulletType extends BulletType {
                 for (int i = 1; i <= segs; i++) {
                     float t  = i / (float) segs;
                     float mt = 1f - t;
-                    // Кубический Безье
+
                     float px = mt*mt*mt*x1 + 3*mt*mt*t*midX1 + 3*mt*t*t*midX2 + t*t*t*x2;
                     float py = mt*mt*mt*y1 + 3*mt*mt*t*midY1 + 3*mt*t*t*midY2 + t*t*t*y2;
-                    // Боковое смещение перпендикулярно сегменту
+
                     float dx = px - lx, dy = py - ly;
                     float len = Mathf.sqrt(dx*dx + dy*dy);
                     if (len > 0.001f) {
@@ -441,7 +364,6 @@ public class OmniChainBulletType extends BulletType {
                 }
             }
 
-            // ── Искры вдоль дуги ───────────────────────────────────
             if (p < 0.5f && hopIndex < 4) {
                 float spark = (0.5f - p) / 0.5f;
                 Angles.randLenVectors(e.id + hopIndex * 100, 3 + hopIndex,
@@ -456,7 +378,6 @@ public class OmniChainBulletType extends BulletType {
                     });
             }
 
-            // ── Кольцо на цели (второй конец дуги) ────────────────
             if (p > 0.2f) {
                 float rp = (p - 0.2f) / 0.8f;
                 Draw.color(c, (1f - rp) * fot * 0.8f);
@@ -467,7 +388,6 @@ public class OmniChainBulletType extends BulletType {
                 Fill.circle(x2, y2, hr * 0.8f * (1f - rp) * fot);
             }
 
-            // ── Свет вдоль всей дуги ──────────────────────────────
             Drawf.light(x1, y1, x2, y2, thick * 4f, c, 0.55f * fot);
             Drawf.light(x2, y2, hr * 5f * fot, gc, 0.5f * fot);
 

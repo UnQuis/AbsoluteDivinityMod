@@ -13,16 +13,15 @@ import mindustry.world.blocks.defense.turrets.ItemTurret;
 
 public class OmniTurret extends ItemTurret {
 
-    // ── Stats ──────────────────────────────────────────────────────
-    /** Базовая дальность (без бонуса от материала). */
+    
     public float baseRange = 200f;
-    /** Максимальная дальность независимо от материала. */
+    
     public float maxRange  = 420f;
-    /** Вклад суммы характеристик материала в дальность. */
+    
     public float rangePerStatPoint = 55f;
 
-    /** Максимальный размер пули (drawSize cap). */
-    public float maxBulletDrawSize = 320f;
+    public float maxBulletDrawSize  = 320f;
+    public float maxSplashRadius    = 80f;
 
     public OmniTurret(String name) {
         super(name);
@@ -37,8 +36,6 @@ public class OmniTurret extends ItemTurret {
         targetAir    = true;
         targetGround = true;
 
-        // range переопределяется в init() под каждый ammo,
-        // здесь ставим дефолт чтобы визуал круга показался нормально
         range = baseRange;
 
         requirements(Category.turret, with(
@@ -58,47 +55,39 @@ public class OmniTurret extends ItemTurret {
             ammoTypes.put(item, bullet);
         });
 
-        // Дальность турели = максимум среди всех зарегистрированных ammo
-        // (ItemTurret сам не меняет range по ammo — держим maxRange)
         range = maxRange;
     }
 
-    // ── Bullet factory ─────────────────────────────────────────────
-
     OmniChainBulletType buildBullet(Item item) {
 
-        // ── Цвет ──────────────────────────────────────────────────
         Color base;
         float f = item.flammability, c = item.charge, r = item.radioactivity;
         float total = f + c + r;
 
         if (total < 0.05f) {
-            // Инертный материал — холодный синевато-серый
+
             base = Color.valueOf("a0b8cc");
         } else if (f >= c && f >= r) {
-            // Горючий — оранжево-красный
+
             base = Color.valueOf("ff8c42").lerp(Color.valueOf("ff3010"), Mathf.clamp(f));
         } else if (c >= r) {
-            // Заряженный — синий → фиолетовый
+
             base = Color.valueOf("42c5ff").lerp(Color.valueOf("bf92f9"), Mathf.clamp(c * 0.7f));
         } else {
-            // Радиоактивный — зелёный → жёлто-зелёный
+
             base = Color.valueOf("7aff42").lerp(Color.valueOf("d4ff00"), Mathf.clamp(r * 0.6f));
         }
 
-        // ── Урон ──────────────────────────────────────────────────
         float dmg = 45f
             + item.explosiveness * 200f
             + item.charge        * 90f
             + item.radioactivity * 70f
             + item.hardness      * 5f;
 
-        // ── Дальность (зависит от суммы характеристик) ────────────
-        // statScore: сумма всех "интересных" свойств
         float statScore = item.explosiveness
                         + item.charge
                         + item.radioactivity
-                        + Mathf.clamp(item.hardness / 15f); // hardness нормализуем
+                        + Mathf.clamp(item.hardness / 15f);
 
         float bulletRange = Mathf.clamp(
             baseRange + statScore * rangePerStatPoint,
@@ -106,10 +95,8 @@ public class OmniTurret extends ItemTurret {
             maxRange
         );
 
-        // ── Строим тип пули ───────────────────────────────────────
         OmniChainBulletType bullet = new OmniChainBulletType(dmg, item.charge, base, bulletRange, maxBulletDrawSize);
 
-        // ── Статус-эффекты ────────────────────────────────────────
         if (item.radioactivity > 0.8f) {
             bullet.status         = StatusEffects.corroded;
             bullet.statusDuration = 60f * 8;
@@ -123,10 +110,9 @@ public class OmniTurret extends ItemTurret {
             bullet.statusDuration = 60f * 2;
         }
 
-        // ── Взрывной сплэш ────────────────────────────────────────
         if (item.explosiveness > 0.5f) {
             bullet.splashDamage       = dmg * 0.45f;
-            bullet.splashDamageRadius = 32f + item.explosiveness * 50f;
+            bullet.splashDamageRadius = Math.min(32f + item.explosiveness * 50f, maxSplashRadius);
         }
 
         return bullet;
